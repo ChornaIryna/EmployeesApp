@@ -1,45 +1,54 @@
 ﻿using EmployeesApp.Web.Models;
 using EmployeesApp.Web.Services;
+using EmployeesApp.Web.Views.Employees;
 using Microsoft.AspNetCore.Mvc;
 
-namespace EmployeesApp.Web.Controllers
+namespace EmployeesApp.Web.Controllers;
+
+public class EmployeesController : Controller
 {
-    public class EmployeesController : Controller
+    static EmployeeService service = new EmployeeService();
+
+    [HttpGet("")]
+    public IActionResult Index()
     {
-        static EmployeeService service = new EmployeeService();
-
-        [HttpGet("")]
-        public IActionResult Index()
+        var model = service.GetAll();
+        var viewModel = model.Select(e => new IndexVM
         {
-            var model = service.GetAll();
+            Id = e.Id,
+            Name = e.Name,
+            Email = e.Email,
+            ShowAsHighlighted = service.IsAdmin(e.Email)
+        }).ToArray();
 
-            //foreach (var emp in model)
-            //    Console.WriteLine($"{emp.Name}: {emp.Id}");
+        return View(viewModel);
+    }
 
-            return View(model);
-        }
+    [HttpGet("create")]
+    public IActionResult Create()
+    {
+        return View();
+    }
 
-        [HttpGet("create")]
-        public IActionResult Create()
-        {
+    [HttpPost("create")]
+    public IActionResult Create(CreateVM viewModel)
+    {
+        if (!ModelState.IsValid)
             return View();
-        }
 
-        [HttpPost("create")]
-        public IActionResult Create(Employee employee)
+        var employee = new Employee
         {
-            if (!ModelState.IsValid)
-                return View();
+            Name = viewModel.Name,
+            Email = viewModel.Email
+        };
+        service.Add(employee);
+        return RedirectToAction(nameof(Index));
+    }
 
-            service.Add(employee);
-            return RedirectToAction(nameof(Index));
-        }
-
-        [HttpGet("details/{id}")]
-        public IActionResult Details(int id)
-        {
-            var model = service.GetById(id);
-            return View(model);
-        }
+    [HttpGet("details/{id}")]
+    public IActionResult Details(int id)
+    {
+        var model = service.GetById(id);
+        return View(model);
     }
 }
