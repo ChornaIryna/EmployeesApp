@@ -49,6 +49,12 @@ public class EmployeesController : Controller
     public IActionResult Details(int id)
     {
         var model = service.GetById(id);
-        return View(model);
+        var viewModel = new DetailsVM()
+        {
+            
+            Name = model.Name,
+            Email=model.Email
+        };
+        return View(viewModel);
     }
 }
